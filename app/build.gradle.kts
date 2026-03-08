@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.spendsense"
+    namespace = "com.spendvue"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.spendsense"
+        applicationId = "com.spendvue"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
@@ -18,9 +18,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Mock server URL — swap for real backend URL when ready
-        // For emulator: 10.0.2.2 is the host machine's localhost
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000/\"")
+        // Real backend URL (Spring Boot) — for emulator: 10.0.2.2 is the host machine's localhost
+        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+        // Google OAuth web client ID (for CredentialManager)
+        buildConfigField("String", "WEB_CLIENT_ID", "\"1052544216284-go4jl2sg5p2fg1o6n06uphni4nsntied.apps.googleusercontent.com\"")
     }
 
     buildTypes {
@@ -75,6 +76,12 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
     implementation(libs.okhttp.logging)
+
+    // Google Sign‑In (CredentialManager + Play Services Auth)
+    implementation(libs.play.services.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.google.id)
 
     // Encrypted token storage
     implementation(libs.security.crypto)

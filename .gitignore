@@ -1,3 +1,5 @@
 /app/build
 .gradle
 .idea
+google-services.json
+build
