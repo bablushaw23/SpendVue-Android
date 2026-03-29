@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import javax.inject.Inject
 
 sealed class AccountsUiEvent {
@@ -49,7 +50,10 @@ class AccountsViewModel @Inject constructor(
             repository.getActiveAccounts().collectLatest { list ->
                 _accounts.value = list
                 _activeCount.value = list.size
-                _totalBalance.value = list.sumOf { it.currentBalance }
+                _totalBalance.value = list.sumOf { account ->
+                    if (account.accountType == "CREDIT_CARD") -abs(account.currentBalance)
+                    else account.currentBalance
+                }
             }
         }
     }

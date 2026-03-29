@@ -26,6 +26,8 @@ fun AddEditAccountScreen(
 ) {
     val accountName by viewModel.accountName.collectAsState()
     val bankName by viewModel.bankName.collectAsState()
+    val bankSelection by viewModel.bankSelection.collectAsState()
+    val customBankName by viewModel.customBankName.collectAsState()
     val accountType by viewModel.accountType.collectAsState()
     val last4Digits by viewModel.last4Digits.collectAsState()
     val currentBalance by viewModel.currentBalance.collectAsState()
@@ -121,10 +123,23 @@ fun AddEditAccountScreen(
 
             // ── Bank Name Dropdown ────────────────────────────────────────
             BankNameDropdown(
-                selected = bankName,
+                selected = bankSelection,
                 onSelect = { viewModel.onEvent(AccountFormEvent.BankNameChanged(it)) },
                 errorText = formErrors["bankName"]
             )
+
+            // ── Custom Bank Name (when "Other" selected) ──────────────────
+            if (bankSelection == "Other") {
+                SpendSenseTextField(
+                    value = customBankName,
+                    onValueChange = { viewModel.onEvent(AccountFormEvent.CustomBankNameChanged(it)) },
+                    label = "Bank Name",
+                    placeholder = "e.g. Regional Co-operative Bank",
+                    errorText = formErrors["bankName"],
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words),
+                    enabled = true
+                )
+            }
 
             // ── Account Type (radio, read-only on edit) ───────────────────
             AccountTypeSelector(
@@ -146,17 +161,18 @@ fun AddEditAccountScreen(
                     "Last 4 digits cannot be changed" else "Helps match SMS transactions"
             )
 
-            // ── Current Balance ───────────────────────────────────────────
+            // ── Current Balance / Outstanding ─────────────────────────────
             SpendSenseTextField(
                 value = currentBalance,
                 onValueChange = { viewModel.onEvent(AccountFormEvent.CurrentBalanceChanged(it)) },
-                label = "Current Balance (₹)",
-                placeholder = "e.g. 50000",
+                label = if (accountType == "CREDIT_CARD") "Current Outstanding (₹)" else "Current Balance (₹)",
+                placeholder = if (accountType == "CREDIT_CARD") "e.g. 15000" else "e.g. 50000",
                 errorText = formErrors["balance"],
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 enabled = !viewModel.isEditing,
                 supportingText = if (viewModel.isEditing)
-                    "Update balance during Daily Sync (Feature 9)" else "Check your bank app for accuracy"
+                    "Update balance during Daily Sync (Feature 9)" else if (accountType == "CREDIT_CARD") 
+                    "Enter the total amount you owe (will be shown as liability)" else "Check your bank app for accuracy"
             )
 
             Spacer(Modifier.height(8.dp))

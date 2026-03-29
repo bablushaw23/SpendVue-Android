@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,12 +18,26 @@ class AddEditAccountViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    companion object {
+        private val POPULAR_BANKS = listOf(
+            "HDFC Bank", "ICICI Bank", "SBI", "Axis Bank", "Kotak Mahindra Bank",
+            "IDFC First Bank", "Yes Bank", "IndusInd Bank", "Bank of Baroda",
+            "Punjab National Bank", "Canara Bank", "Other"
+        )
+    }
+
     private val accountId: Int = savedStateHandle.get<Int>("accountId") ?: -1
     val isEditing = accountId != -1
 
     private val _accountName = MutableStateFlow("")
     val accountName: StateFlow<String> = _accountName.asStateFlow()
 
+    private val _bankSelection = MutableStateFlow("HDFC Bank")
+    val bankSelection: StateFlow<String> = _bankSelection.asStateFlow()
+    
+    private val _customBankName = MutableStateFlow("")
+    val customBankName: StateFlow<String> = _customBankName.asStateFlow()
+    
     private val _bankName = MutableStateFlow("HDFC Bank")
     val bankName: StateFlow<String> = _bankName.asStateFlow()
 
@@ -51,9 +66,19 @@ class AddEditAccountViewModel @Inject constructor(
                 repository.getAccountById(accountId)?.let { account ->
                     _accountName.value = account.accountName
                     _bankName.value = account.bankName
+                    if (POPULAR_BANKS.contains(account.bankName) && account.bankName != "Other") {
+                        _bankSelection.value = account.bankName
+                        _customBankName.value = ""
+                    } else {
+                        _bankSelection.value = "Other"
+                        _customBankName.value = account.bankName
+                    }
                     _accountType.value = account.accountType
                     _last4Digits.value = account.last4Digits
-                    _currentBalance.value = account.currentBalance.toString()
+                    _currentBalance.value = if (account.accountType == "CREDIT_CARD" && account.currentBalance < 0) 
+                        (-account.currentBalance).toString() 
+                    else 
+                        account.currentBalance.toString()
                 }
             }
         }
@@ -66,8 +91,21 @@ class AddEditAccountViewModel @Inject constructor(
                 clearError("accountName")
             }
             is AccountFormEvent.BankNameChanged -> {
-                _bankName.value = event.name
+                _bankSelection.value = event.name
                 clearError("bankName")
+                if (event.name != "Other") {
+                    _bankName.value = event.name
+                } else {
+                    // Keep current custom bank name if any
+                    _bankName.value = _customBankName.value
+                }
+            }
+            is AccountFormEvent.CustomBankNameChanged -> {
+                _customBankName.value = event.name
+                clearError("bankName")
+                if (_bankSelection.value == "Other") {
+                    _bankName.value = event.name
+                }
             }
             is AccountFormEvent.AccountTypeChanged -> _accountType.value = event.type
             is AccountFormEvent.Last4DigitsChanged -> {
@@ -91,7 +129,14 @@ class AddEditAccountViewModel @Inject constructor(
         if (_bankName.value.isBlank()) errors["bankName"] = "Please select a bank"
         if (!isEditing) {
             if (_last4Digits.value.length != 4) errors["last4Digits"] = "Enter exactly 4 digits"
-            if (_currentBalance.value.toDoubleOrNull() == null) errors["balance"] = "Enter a valid balance"
+            val balance = _currentBalance.value.toDoubleOrNull()
+            if (balance == null) {
+                errors["balance"] = "Enter a valid balance"
+            } else {
+                if (_accountType.value == "CREDIT_CARD" && balance < 0) {
+                    errors["balance"] = "Outstanding amount cannot be negative"
+                }
+            }
         }
 
         if (errors.isNotEmpty()) {
@@ -122,7 +167,10 @@ class AddEditAccountViewModel @Inject constructor(
                     bankName = _bankName.value,
                     accountType = _accountType.value,
                     last4Digits = _last4Digits.value,
-                    currentBalance = _currentBalance.value.toDouble()
+                    currentBalance = if (_accountType.value == "CREDIT_CARD") 
+                        -abs(_currentBalance.value.toDouble())
+                    else 
+                        _currentBalance.value.toDouble()
                 )
                 _isLoading.value = false
                 _uiEvent.value = if (result.isSuccess) {
@@ -165,6 +213,7 @@ class AddEditAccountViewModel @Inject constructor(
 sealed class AccountFormEvent {
     data class AccountNameChanged(val name: String) : AccountFormEvent()
     data class BankNameChanged(val name: String) : AccountFormEvent()
+    data class CustomBankNameChanged(val name: String) : AccountFormEvent()
     data class AccountTypeChanged(val type: String) : AccountFormEvent()
     data class Last4DigitsChanged(val digits: String) : AccountFormEvent()
     data class CurrentBalanceChanged(val balance: String) : AccountFormEvent()

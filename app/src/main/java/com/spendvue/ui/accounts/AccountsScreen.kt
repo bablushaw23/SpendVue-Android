@@ -31,6 +31,7 @@ import com.spendvue.ui.theme.CreditRed
 import com.spendvue.ui.theme.PrimaryIndigo
 import com.spendvue.ui.theme.SalaryGold
 import com.spendvue.ui.theme.SavingsGreen
+import kotlin.math.abs
 import java.text.NumberFormat
 import java.util.Currency
 
@@ -282,7 +283,7 @@ fun AccountCard(
     val fmt = rememberRupeeFormat()
     val isCredit = account.accountType == "CREDIT_CARD"
     val balanceColor = when {
-        isCredit && account.currentBalance < 0 -> CreditRed
+        isCredit -> CreditRed
         !isCredit && account.currentBalance < 0 -> MaterialTheme.colorScheme.error
         else -> SavingsGreen
     }
@@ -337,8 +338,8 @@ fun AccountCard(
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    if (isCredit && account.currentBalance < 0)
-                        "${fmt.format(-account.currentBalance)} due"
+                    if (isCredit)
+                        "${fmt.format(abs(account.currentBalance))} due"
                     else
                         fmt.format(account.currentBalance),
                     style = MaterialTheme.typography.titleMedium,
