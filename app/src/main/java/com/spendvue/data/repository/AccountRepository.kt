@@ -28,6 +28,9 @@ class AccountRepository @Inject constructor(
     suspend fun getAccountById(id: Int): Account? =
         accountDao.getById(id, currentUserId)
 
+    suspend fun getAccountByLast4Digits(last4Digits: String): Account? =
+        accountDao.getByLast4Digits(currentUserId, last4Digits)
+
     suspend fun createAccount(
         accountName: String,
         bankName: String,

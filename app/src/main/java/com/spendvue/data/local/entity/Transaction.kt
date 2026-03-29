@@ -18,7 +18,8 @@ import androidx.room.PrimaryKey
     ],
     indices = [
         Index(value = ["account_id"]),
-        Index(value = ["category"])
+        Index(value = ["category"]),
+        Index(value = ["user_id"])
     ]
 )
 data class Transaction(
@@ -27,6 +28,9 @@ data class Transaction(
 
     @ColumnInfo(name = "account_id")
     val accountId: Int,
+
+    @ColumnInfo(name = "user_id")
+    val userId: String,
 
     @ColumnInfo(name = "amount")
     val amount: Double,

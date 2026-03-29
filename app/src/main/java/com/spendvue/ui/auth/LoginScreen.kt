@@ -32,8 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import android.app.Activity
-import com.spendvue.auth.getGoogleIdToken
-import com.spendvue.BuildConfig
+
 
 @Composable
 fun LoginScreen(
@@ -152,24 +151,11 @@ fun LoginScreen(
 
                             Spacer(Modifier.height(8.dp))
 
-                            val context = LocalContext.current
-                            val activity = context as Activity
-                            val scope = rememberCoroutineScope()
+
 
                             Button(
                                 onClick = {
-                                    scope.launch {
-                                        try {
-                                            val idToken = getGoogleIdToken(
-                                                activity = activity,
-                                                webClientId = BuildConfig.WEB_CLIENT_ID
-                                            )
-                                            viewModel.loginWithGoogle(idToken)
-                                        } catch (e: Exception) {
-                                            // Error handled by CredentialManager or ViewModel
-                                            // The ViewModel will show snackbar via uiState
-                                        }
-                                    }
+                                    viewModel.loginBypass()
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()

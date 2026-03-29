@@ -2,6 +2,7 @@ package com.spendvue.di
 
 import com.spendvue.BuildConfig
 import com.spendvue.data.remote.AuthApi
+import com.spendvue.data.remote.SmsApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -49,5 +50,11 @@ object NetworkModule {
     @Singleton
     fun provideAuthApi(retrofit: Retrofit): AuthApi {
         return retrofit.create(AuthApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSmsApi(retrofit: Retrofit): SmsApi {
+        return retrofit.create(SmsApi::class.java)
     }
 }

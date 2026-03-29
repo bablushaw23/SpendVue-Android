@@ -66,6 +66,23 @@ class AuthManager @Inject constructor(
 
     fun getName(): String? = decodePayload()?.optString("name")
 
+    fun saveDummyToken(email: String = "test@example.com", name: String = "Test User") {
+        val payload = JSONObject().apply {
+            put("user_id", "dummy_user_123")
+            put("sub", "dummy_user_123")
+            put("email", email)
+            put("name", name)
+        }
+        val header = JSONObject().apply {
+            put("alg", "HS256")
+            put("typ", "JWT")
+        }
+        val headerBase64 = Base64.getEncoder().encodeToString(header.toString().toByteArray())
+        val payloadBase64 = Base64.getEncoder().encodeToString(payload.toString().toByteArray())
+        val dummyToken = "$headerBase64.$payloadBase64.dummy_signature"
+        saveToken(dummyToken)
+    }
+    
     private fun decodePayload(): JSONObject? {
         val token = getToken() ?: return null
         return try {

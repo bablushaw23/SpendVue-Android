@@ -4,6 +4,7 @@ import android.content.Context
 import com.spendvue.auth.AuthManager
 import com.spendvue.data.local.SpendSenseDatabase
 import com.spendvue.data.local.dao.AccountDao
+import com.spendvue.data.local.dao.TransactionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -24,6 +25,11 @@ object DatabaseModule {
     @Provides
     fun provideAccountDao(database: SpendSenseDatabase): AccountDao {
         return database.accountDao()
+    }
+
+    @Provides
+    fun provideTransactionDao(database: SpendSenseDatabase): TransactionDao {
+        return database.transactionDao()
     }
 
     @Provides

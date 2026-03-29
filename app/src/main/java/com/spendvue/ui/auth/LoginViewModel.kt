@@ -80,6 +80,14 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun loginBypass() {
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            authManager.saveDummyToken()
+            _uiState.value = LoginUiState.Success
+        }
+    }
+
     fun resetState() {
         _uiState.value = LoginUiState.Idle
     }
